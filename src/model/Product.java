@@ -1,0 +1,97 @@
+package model;
+
+import enums.ProductType;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public class Product {
+    private final UUID id;
+    private String name;
+    private BigDecimal basePrice;
+    private int quantity;
+    private ProductType type;
+    private List<ConfigurationOption> availableOptions;
+    private List<ConfigurationOption> selectedOptions;
+
+    public Product(String name, BigDecimal price, int quantity, ProductType type, List<ConfigurationOption> availableOptions) {
+        if (price.compareTo(BigDecimal.ZERO) < 0 || quantity < 0) {
+            throw new IllegalStateException("Cena i ilość nie mogą być ujemne");
+        }
+        this.id = UUID.randomUUID();
+        this.name = name;
+        this.basePrice = price;
+        this.quantity = quantity;
+        this.type = type;
+        this.availableOptions = availableOptions;
+        this.selectedOptions = new ArrayList<>();
+    }
+
+    public void addSelectedOption(ConfigurationOption option) {
+        if (!availableOptions.contains(option)) {
+            throw new IllegalArgumentException("Opcja niedostępna dla tego produktu");
+        }
+        selectedOptions.add(option);
+    }
+
+    public BigDecimal getFinalPrice() {
+        BigDecimal optionsPrice = selectedOptions.stream()
+                .map(ConfigurationOption::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return basePrice.add(optionsPrice);
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public BigDecimal getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(BigDecimal basePrice) {
+        this.basePrice = basePrice;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public ProductType getType() {
+        return type;
+    }
+
+    public void setType(ProductType type) {
+        this.type = type;
+    }
+
+    public List<ConfigurationOption> getAvailableOptions() {
+        return availableOptions;
+    }
+
+    public void setAvailableOptions(List<ConfigurationOption> availableOptions) {
+        this.availableOptions = availableOptions;
+    }
+
+    public List<ConfigurationOption> getSelectedOptions() {
+        return selectedOptions;
+    }
+
+    public void setSelectedOptions(List<ConfigurationOption> selectedOptions) {
+        this.selectedOptions = selectedOptions;
+    }
+}
