@@ -25,7 +25,7 @@ public class Product {
         this.basePrice = price;
         this.quantity = quantity;
         this.type = type;
-        this.availableOptions = availableOptions;
+        this.availableOptions = availableOptions != null ? availableOptions : new ArrayList<>();
         this.selectedOptions = new ArrayList<>();
     }
 

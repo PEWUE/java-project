@@ -9,7 +9,7 @@ public class ConfigurationOption {
 
     public ConfigurationOption(String name, BigDecimal price) {
         if (price.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalStateException("Cena opcji nie może być ujemna");
+            throw new IllegalArgumentException("Cena opcji nie może być ujemna");
         }
         this.name = name;
         this.price = price;
