@@ -1,56 +1,53 @@
-import enums.ProductType;
-import model.ConfigurationOption;
+import generator.ConfigurationOptionGenerator;
+import generator.ProductGenerator;
+import manager.ProductManager;
 import model.Product;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class Main {
     public static void main(String[] args) {
-        //COMPUTER
-        List<ConfigurationOption> computerOptions = List.of(
-                new ConfigurationOption("Intel i5", new BigDecimal("600")),
-                new ConfigurationOption("16GB RAM", new BigDecimal("400")),
-                new ConfigurationOption("512GB SSD", new BigDecimal("300"))
-        );
-        Product computer = new Product(
-                "Komputer biurowy",
-                new BigDecimal("2000"),
-                5,
-                ProductType.COMPUTER,
-                computerOptions
-        );
-        computer.addSelectedOption(computerOptions.get(0)); // Intel i5 - 600
-        computer.addSelectedOption(computerOptions.get(1)); // 16GB RAM - 400
+        ProductManager manager = new ProductManager();
 
-        //SMARTPHONE
-        List<ConfigurationOption> smartphoneOptions = List.of(
-                new ConfigurationOption("Czarny", BigDecimal.ZERO),
-                new ConfigurationOption("5000mAh bateria", new BigDecimal("100")),
-                new ConfigurationOption("Etui silikonowe", new BigDecimal("30"))
-        );
-        Product smartphone = new Product(
-                "Smartphone X",
-                new BigDecimal("1500"),
-                10,
-                ProductType.SMARTPHONE,
-                smartphoneOptions
-        );
-        smartphone.addSelectedOption(smartphoneOptions.get(0)); // Czarny - 0
-        smartphone.addSelectedOption(smartphoneOptions.get(1)); // 5000mAh bateria - 100
+        List<Product> products = ProductGenerator.sampleProducts();
 
-        //ELECTRONICS
-        List<ConfigurationOption> electronicsOptions = List.of(); // brak opcji
-        Product headphones = new Product(
-                "Słuchawki bezprzewodowe",
-                new BigDecimal("300"),
-                20,
-                ProductType.ELECTRONICS,
-                electronicsOptions
-        );
+        products.forEach(manager::addProduct);
 
-        System.out.println("Komputer - cena końcowa: " + computer.getFinalPrice());
-        System.out.println("Smartfon - cena końcowa: " + smartphone.getFinalPrice());
-        System.out.println("Słuchawki - cena końcowa: " + headphones.getFinalPrice());
+        // Wyświetlenie wszystkich produktów
+        System.out.println("=== LISTA PRODUKTÓW ===");
+        manager.getAllProducts().forEach(System.out::println);
+
+        // Pobranie produktu po ID
+        UUID productId = products.get(5).getId();
+        Optional<Product> foundProduct = manager.getProductById(productId);
+        foundProduct.ifPresent(product -> System.out.println("Znaleziono produkt: " + product.getName()));
+
+        // Aktualizacja produktu
+        Product computer = products.get(8); // wybrany komputer do edycji Computer Model 9
+        Product updatedComputer = new Product(
+                computer.getId(),
+                computer.getName() + " PRO",
+                computer.getBasePrice().add(new BigDecimal("500")),
+                7,
+                computer.getType(),
+                computer.getAvailableOptions()
+        );
+        updatedComputer.addSelectedOption(ConfigurationOptionGenerator.computerOptions1().get(2)); // Dodajemy Processor 3
+        manager.updateProduct(updatedComputer);
+
+        System.out.println("Po aktualizacji komputer: " + manager.getProductById(computer.getId()).get().getName()
+                + " - cena końcowa: " + manager.getProductById(computer.getId()).get().getFinalPrice());
+
+        // Usuwanie produktu
+        Product productToDelete = products.get(15); // wybrany produkt do usuniecia Smartphone Model 6
+        manager.removeProduct(productToDelete.getId());
+        System.out.println("Po usunięciu produktu, liczba produktów: " + manager.getAllProducts().size());
+
+        // Wyświetlenie wszystkich produktów
+        System.out.println("=== LISTA PRODUKTÓW ===");
+        manager.getAllProducts().forEach(System.out::println);
     }
 }

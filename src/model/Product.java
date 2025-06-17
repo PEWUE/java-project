@@ -5,6 +5,7 @@ import enums.ProductType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Product {
@@ -17,10 +18,14 @@ public class Product {
     private List<ConfigurationOption> selectedOptions;
 
     public Product(String name, BigDecimal price, int quantity, ProductType type, List<ConfigurationOption> availableOptions) {
+        this(UUID.randomUUID(), name, price, quantity, type, availableOptions);
+    }
+
+    public Product(UUID id, String name, BigDecimal price, int quantity, ProductType type, List<ConfigurationOption> availableOptions) {
         if (price.compareTo(BigDecimal.ZERO) < 0 || quantity < 0) {
             throw new IllegalStateException("Cena i ilość nie mogą być ujemne");
         }
-        this.id = UUID.randomUUID();
+        this.id = id;
         this.name = name;
         this.basePrice = price;
         this.quantity = quantity;
@@ -93,5 +98,27 @@ public class Product {
 
     public void setSelectedOptions(List<ConfigurationOption> selectedOptions) {
         this.selectedOptions = selectedOptions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Product product = (Product) o;
+        return quantity == product.quantity && Objects.equals(id, product.id) && Objects.equals(name, product.name) && Objects.equals(basePrice, product.basePrice) && type == product.type && Objects.equals(availableOptions, product.availableOptions) && Objects.equals(selectedOptions, product.selectedOptions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, basePrice, quantity, type, availableOptions, selectedOptions);
+    }
+
+    @Override
+    public String toString() {
+        return name + " basePrice: " + basePrice
+                + " quantity: " + quantity
+                + " basePrice: " + basePrice
+                + " finalPrice: " + getFinalPrice()
+                + " availableOptions: " + availableOptions.size()
+                + " selectedOptions: " + selectedOptions.size();
     }
 }
