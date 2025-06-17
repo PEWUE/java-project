@@ -1,4 +1,3 @@
-import generator.ConfigurationOptionGenerator;
 import generator.ProductGenerator;
 import manager.ProductManager;
 import model.Product;
