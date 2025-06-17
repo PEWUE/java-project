@@ -89,7 +89,7 @@ public class Product {
     }
 
     public void setAvailableOptions(List<ConfigurationOption> availableOptions) {
-        this.availableOptions = availableOptions;
+        this.availableOptions = availableOptions != null ? availableOptions : new ArrayList<>();
     }
 
     public List<ConfigurationOption> getSelectedOptions() {
@@ -116,7 +116,6 @@ public class Product {
     public String toString() {
         return name + " basePrice: " + basePrice
                 + " quantity: " + quantity
-                + " basePrice: " + basePrice
                 + " finalPrice: " + getFinalPrice()
                 + " availableOptions: " + availableOptions.size()
                 + " selectedOptions: " + selectedOptions.size();

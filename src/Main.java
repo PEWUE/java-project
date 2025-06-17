@@ -35,7 +35,7 @@ public class Main {
                 computer.getType(),
                 computer.getAvailableOptions()
         );
-        updatedComputer.addSelectedOption(ConfigurationOptionGenerator.computerOptions1().get(2)); // Dodajemy Processor 3
+        updatedComputer.addSelectedOption(computer.getAvailableOptions().get(2)); // Dodajemy Processor 3
         manager.updateProduct(updatedComputer);
 
         System.out.println("Po aktualizacji komputer: " + manager.getProductById(computer.getId()).get().getName()
