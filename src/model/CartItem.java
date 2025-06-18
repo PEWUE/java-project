@@ -9,10 +9,10 @@ public class CartItem {
     private final List<ConfigurationOption> selectedOptions;
     private int quantity;
 
-    public CartItem(int quantity, List<ConfigurationOption> selectedOptions, Product product) {
-        this.quantity = quantity;
-        this.selectedOptions = selectedOptions;
+    public CartItem(Product product, List<ConfigurationOption> selectedOptions, int quantity) {
         this.product = product;
+        this.selectedOptions = selectedOptions;
+        this.quantity = quantity;
     }
 
     public Product getProduct() {
@@ -43,7 +43,7 @@ public class CartItem {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         CartItem cartItem = (CartItem) o;
-        return quantity == cartItem.quantity && Objects.equals(product, cartItem.product) && Objects.equals(selectedOptions, cartItem.selectedOptions);
+        return Objects.equals(product, cartItem.product) && Objects.equals(selectedOptions, cartItem.selectedOptions);
     }
 
     @Override
