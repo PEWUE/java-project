@@ -39,6 +39,7 @@ public class CartItem {
         return singleItemPrice.multiply(BigDecimal.valueOf(quantity));
     }
 
+    // w equals nie porównuję quantity
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
