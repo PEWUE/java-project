@@ -47,8 +47,9 @@ public class CartItem {
         return Objects.equals(product, cartItem.product) && Objects.equals(selectedOptions, cartItem.selectedOptions);
     }
 
+    // w hashcode brak quantity
     @Override
     public int hashCode() {
-        return Objects.hash(product, selectedOptions, quantity);
+        return Objects.hash(product, selectedOptions);
     }
 }

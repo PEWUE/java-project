@@ -85,7 +85,7 @@ public class Product {
     }
 
     public List<ConfigurationOption> getAvailableOptions() {
-        return availableOptions;
+        return List.copyOf(availableOptions);
     }
 
     public void setAvailableOptions(List<ConfigurationOption> availableOptions) {
@@ -93,23 +93,25 @@ public class Product {
     }
 
     public List<ConfigurationOption> getSelectedOptions() {
-        return selectedOptions;
+        return List.copyOf(selectedOptions);
     }
 
     public void setSelectedOptions(List<ConfigurationOption> selectedOptions) {
         this.selectedOptions = selectedOptions;
     }
 
+    //używam tylko id do porównania
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Product product = (Product) o;
-        return quantity == product.quantity && Objects.equals(id, product.id) && Objects.equals(name, product.name) && Objects.equals(basePrice, product.basePrice) && type == product.type && Objects.equals(availableOptions, product.availableOptions) && Objects.equals(selectedOptions, product.selectedOptions);
+        return Objects.equals(id, product.id);
     }
 
+    //używam tylko id w hashCode
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, basePrice, quantity, type, availableOptions, selectedOptions);
+        return Objects.hashCode(id);
     }
 
     @Override
