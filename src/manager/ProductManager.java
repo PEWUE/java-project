@@ -20,19 +20,17 @@ public class ProductManager {
         productMap.put(product.getId(), product);
     }
 
-    public void removeProduct(UUID productID) {
-        if (!productMap.containsKey(productID)) {
-            throw new ProductNotFoundException("Produkt o podanym ID nie istnieje");
-        }
-        productMap.remove(productID);
+    public boolean removeProduct(UUID productID) {
+        return productMap.remove(productID) != null;
     }
 
-    public void updateProduct(Product updatedProduct) {
+    public boolean updateProduct(Product updatedProduct) {
         UUID id = updatedProduct.getId();
         if (!productMap.containsKey(id)) {
-            throw new ProductNotFoundException("Produkt o podanym ID nie istnieje");
+            return false;
         }
         productMap.put(id, updatedProduct);
+        return true;
     }
 
     public Optional<Product> getProductById(UUID productID) {

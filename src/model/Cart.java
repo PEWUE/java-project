@@ -12,7 +12,9 @@ public class Cart {
         return Collections.unmodifiableList(cartItems);
     }
 
-    //TODO przekazywać CartItem czy Product + List<ConfigurationOption>?
+    //TODO
+    // 1. przekazywać CartItem czy Product + List<ConfigurationOption>?
+    // 2. void?
     public boolean addProductToCart(Product product, List<ConfigurationOption> selectedOptions, int quantity) {
         if (product == null || selectedOptions == null) {
             throw new IllegalArgumentException("Produkt i opcje konfiguracji nie mogą być nullem");
@@ -25,11 +27,11 @@ public class Cart {
         for (CartItem cartItem : cartItems) {
             if (cartItem.equals(newCartItem)) {
                 cartItem.setQuantity(cartItem.getQuantity() + quantity);
-                return false; // nie dodano nowej pozycji, zwiększono ilość istniejącego CartItem
+                return false; //TODO czy to jest ok? (nie dodano nowej pozycji, zwiększono ilość istniejącego CartItem)
             }
         }
         cartItems.add(newCartItem);
-        return true; // dodano nowy CartItem
+        return true; //TODO dodano nowy CartItem
     }
 
     //TODO przekazywać CartItem czy Product + List<ConfigurationOption>?
