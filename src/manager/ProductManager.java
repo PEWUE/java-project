@@ -1,7 +1,6 @@
 package manager;
 
 import exceptions.ProductAlreadyExistException;
-import exceptions.ProductNotFoundException;
 import model.Product;
 
 import java.util.HashMap;
@@ -11,33 +10,33 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class ProductManager {
-    private final Map<UUID, Product> productMap = new HashMap<>();
+    private final Map<UUID, Product> products = new HashMap<>();
 
     public void addProduct(Product product) {
-        if (productMap.containsKey(product.getId())) {
+        if (products.containsKey(product.getId())) {
             throw new ProductAlreadyExistException("Produkt o podanym ID już istnieje");
         }
-        productMap.put(product.getId(), product);
+        products.put(product.getId(), product);
     }
 
     public boolean removeProduct(UUID productID) {
-        return productMap.remove(productID) != null;
+        return products.remove(productID) != null;
     }
 
     public boolean updateProduct(Product updatedProduct) {
         UUID id = updatedProduct.getId();
-        if (!productMap.containsKey(id)) {
+        if (!products.containsKey(id)) {
             return false;
         }
-        productMap.put(id, updatedProduct);
+        products.put(id, updatedProduct);
         return true;
     }
 
     public Optional<Product> getProductById(UUID productID) {
-        return Optional.ofNullable(productMap.get(productID));
+        return Optional.ofNullable(products.get(productID));
     }
 
     public List<Product> getAllProducts() {
-        return List.copyOf(productMap.values());
+        return List.copyOf(products.values());
     }
 }

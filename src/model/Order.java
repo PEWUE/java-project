@@ -86,6 +86,7 @@ public class Order {
                 "id=" + id +
                 ", orderDate=" + orderDate +
                 ", orderItemsCount=" + orderItems.size() +
+                ", status=" + status +
                 ", finalPrice=" + finalPrice +
                 ", customer=" + customer +
                 '}';

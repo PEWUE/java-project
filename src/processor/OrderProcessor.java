@@ -1,21 +1,45 @@
 package processor;
 
 import enums.OrderStatus;
+import exceptions.ProductNotFoundException;
+import manager.ProductManager;
 import model.CartItem;
 import model.Customer;
 import model.Order;
+import model.Product;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 public class OrderProcessor {
     private static int invoiceCounter = 1;
 
-    public static void processOrder(Order order) {
+    public static void processOrder(Order order, ProductManager productManager) {
         if (order == null) {
             throw new IllegalArgumentException("Zamówienie nie może być nullem");
         }
         if (order.getStatus() != OrderStatus.NEW) {
             throw new IllegalStateException("Zamówienie nie może zostać przetworzone. Jego obecny status to: " + order.getStatus());
+        }
+        //TODO
+        // czy jest sens tworzyć OrderItem, jeśli byłby praktycznie kopią CartItem?
+        for (CartItem orderItem : order.getOrderItems()) {
+            Product product = productManager.getProductById(orderItem.getProduct().getId())
+                    .orElseThrow(() -> new ProductNotFoundException("Produkt nie istnieje w magazynie"));
+            if (product.getQuantity() < orderItem.getQuantity()) {
+                throw new IllegalStateException("Brak wystarczającej ilości: " + product.getName() + " Dostępna ilość: " + product.getQuantity());
+            }
+        }
+        for (CartItem orderItem : order.getOrderItems()) {
+            Optional<Product> product = productManager.getProductById(orderItem.getProduct().getId());
+            product.ifPresent(prod -> {
+                prod.setQuantity(prod.getQuantity() - orderItem.getQuantity());
+                productManager.updateProduct(prod);
+                if (prod.getQuantity() == 0) {
+                    productManager.removeProduct(prod.getId());
+                }
+            });
+
         }
         order.setStatus(OrderStatus.PAID);
     }
