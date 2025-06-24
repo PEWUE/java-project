@@ -31,11 +31,15 @@ public class CartItem {
         this.quantity = quantity;
     }
 
-    public BigDecimal getTotalPrice() {
+    public BigDecimal getSingleItemPrice() {
         BigDecimal optionsPrice = selectedOptions.stream()
                 .map(ConfigurationOption::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal singleItemPrice = product.getBasePrice().add(optionsPrice);
+        return product.getBasePrice().add(optionsPrice);
+    }
+
+    public BigDecimal getTotalPrice() {
+        BigDecimal singleItemPrice = getSingleItemPrice();
         return singleItemPrice.multiply(BigDecimal.valueOf(quantity));
     }
 
