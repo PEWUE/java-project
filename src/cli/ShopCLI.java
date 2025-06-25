@@ -227,7 +227,6 @@ public class ShopCLI {
         }
     }
 
-
     private int readInt(String prompt) {
         while (true) {
             System.out.print(prompt);
