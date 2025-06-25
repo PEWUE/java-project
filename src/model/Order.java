@@ -84,7 +84,7 @@ public class Order {
     public String toString() {
         return "Order{" +
                 "id=" + id +
-                ", orderDate=" + orderDate +
+                ", orderDate=" + orderDate.toLocalDateTime() +
                 ", orderItemsCount=" + orderItems.size() +
                 ", status=" + status +
                 ", finalPrice=" + finalPrice +
