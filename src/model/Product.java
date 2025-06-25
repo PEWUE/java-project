@@ -15,6 +15,7 @@ public class Product {
     private int quantity;
     private ProductType type;
     private List<ConfigurationOption> availableOptions;
+    //TODO selectedOptions prawdopodobnie do wyrzucenia?
     private List<ConfigurationOption> selectedOptions;
 
     public Product(String name, BigDecimal price, int quantity, ProductType type, List<ConfigurationOption> availableOptions) {
