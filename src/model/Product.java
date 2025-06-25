@@ -117,9 +117,9 @@ public class Product {
     @Override
     public String toString() {
         return name + " basePrice: " + basePrice
-                + " quantity: " + quantity
-                + " finalPrice: " + getFinalPrice()
-                + " availableOptions: " + availableOptions.size()
-                + " selectedOptions: " + selectedOptions.size();
+                + " in magazine: " + quantity
+                + " availableOptions: " + availableOptions
+                + " selectedOptions: " + selectedOptions
+                + " finalPrice: " + getFinalPrice();
     }
 }
