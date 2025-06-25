@@ -1,5 +1,7 @@
 package model;
 
+import exceptions.ProductNotFoundException;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,7 +17,7 @@ public class Cart {
     //TODO
     // 1. przekazywać CartItem czy Product + List<ConfigurationOption>?
     // 2. void?
-    public boolean addProductToCart(Product product, List<ConfigurationOption> selectedOptions, int quantity) {
+    public boolean addProduct(Product product, List<ConfigurationOption> selectedOptions, int quantity) {
         if (product == null || selectedOptions == null) {
             throw new IllegalArgumentException("Produkt i opcje konfiguracji nie mogą być nullem");
         }
@@ -36,6 +38,9 @@ public class Cart {
 
     //TODO przekazywać CartItem czy Product + List<ConfigurationOption>?
     public boolean removeItem(CartItem cartItem) {
+        if (!cartItems.contains(cartItem)) {
+            throw new ProductNotFoundException("Produkt nie istnieje w magazynie");
+        }
         return cartItems.remove(cartItem);
     }
 

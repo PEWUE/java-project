@@ -1,5 +1,6 @@
 package cli;
 
+import exceptions.ProductNotFoundException;
 import manager.ProductManager;
 import model.Cart;
 import model.CartItem;
@@ -101,8 +102,12 @@ public class ShopCLI {
             return;
         }
 
-        cart.addProductToCart(selectedProduct, chosenOptions, quantity);
-        System.out.println("Dodano do koszyka: " + selectedProduct.getName() + " w ilości: " + quantity);
+        try {
+            cart.addProduct(selectedProduct, chosenOptions, quantity);
+            System.out.println("Dodano do koszyka: " + selectedProduct.getName() + " w ilości: " + quantity);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Błąd podczas dodawania do koszyka: " + e.getMessage());
+        }
     }
 
     private List<ConfigurationOption> chooseOptions(Product product) {
@@ -191,7 +196,7 @@ public class ShopCLI {
                 System.out.println(OrderProcessor.generateInvoice(order));
             }
             cart.clear();
-        } catch (Exception e) {
+        } catch (IllegalStateException | IllegalArgumentException e) {
             System.err.println("Błąd podczas składania zamówienia: " + e.getMessage());
         }
     }
@@ -219,11 +224,15 @@ public class ShopCLI {
             return;
         }
         CartItem toRemove = items.get(choice - 1);
-        boolean removed = cart.removeItem(toRemove);
-        if (removed) {
-            System.out.println("Usunięto produkt z koszyka.");
-        } else {
-            System.out.println("Nie udało się usunąć produktu.");
+        try {
+            boolean removed = cart.removeItem(toRemove);
+            if (removed) {
+                System.out.println("Usunięto produkt z koszyka.");
+            } else {
+                System.out.println("Nie udało się usunąć produktu.");
+            }
+        } catch (ProductNotFoundException e) {
+            System.err.println("Błąd podczas usuwania produktu: " + e.getMessage());
         }
     }
 
