@@ -1,10 +1,11 @@
 package model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
-public class CartItem {
+public class CartItem implements Serializable {
     private final Product product;
     private final List<ConfigurationOption> selectedOptions;
     private int quantity;

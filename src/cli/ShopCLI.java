@@ -1,6 +1,7 @@
 package cli;
 
 import exceptions.ProductNotFoundException;
+import manager.OrderPersistenceManager;
 import manager.ProductManager;
 import model.Cart;
 import model.CartItem;
@@ -10,23 +11,34 @@ import model.Order;
 import model.Product;
 import processor.OrderProcessor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class ShopCLI {
+    public static final String ORDERS_FILENAME = "orders.dat";
+
     private final Scanner scanner;
     private final ProductManager productManager;
     private final Cart cart;
+    private List<Order> orders;
 
     public ShopCLI(ProductManager productManager, Cart cart) {
         this.scanner = new Scanner(System.in);
         this.productManager = productManager;
         this.cart = cart;
+        try {
+            this.orders = OrderPersistenceManager.loadOrdersFromFile(ORDERS_FILENAME);
+        } catch (IOException | ClassNotFoundException e) {
+            this.orders = new ArrayList<>();
+            System.err.println("Wczytywanie zamówień z pliku zakończone niepowodzeniem. Stworzono nową listę. " + e.getMessage());
+        }
     }
 
     public void start() {
         boolean running = true;
+        System.out.println(orders);
         while (running) {
             showMainMenu();
             int choice = readInt("Wybierz opcję: ");
@@ -190,6 +202,8 @@ public class ShopCLI {
         try {
             OrderProcessor.processOrder(order, productManager);
             System.out.println("Zamówienie zostało złożone i opłacone");
+            orders.add(order);
+            OrderPersistenceManager.saveOrdersToFile(orders, ORDERS_FILENAME);
             String choice = readString("Czy chcesz wygenerować fakturę? (t/n)");
             if (choice.equalsIgnoreCase("t") || choice.equalsIgnoreCase("tak")) {
                 System.out.println("FAKTURA");
@@ -198,6 +212,8 @@ public class ShopCLI {
             cart.clear();
         } catch (IllegalStateException | IllegalArgumentException e) {
             System.err.println("Błąd podczas składania zamówienia: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Błąd podczas zapisu do pliku: " + e.getMessage());
         }
     }
 

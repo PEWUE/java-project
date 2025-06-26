@@ -2,6 +2,7 @@ package model;
 
 import enums.OrderStatus;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Order {
+public class Order implements Serializable {
     private final UUID id;
     private final ZonedDateTime orderDate;
     private final List<CartItem> orderItems;

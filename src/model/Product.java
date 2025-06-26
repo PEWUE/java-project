@@ -2,13 +2,14 @@ package model;
 
 import enums.ProductType;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Product {
+public class Product implements Serializable {
     private final UUID id;
     private String name;
     private BigDecimal basePrice;

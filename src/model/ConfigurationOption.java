@@ -1,9 +1,10 @@
 package model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-public class ConfigurationOption {
+public class ConfigurationOption implements Serializable {
     private final String name;
     private final BigDecimal price;
 
