@@ -28,10 +28,10 @@ public class Order implements Serializable {
     /**
      * Creates a new order.
      *
-     * @param orderItems     list of items in the order (must not be null or empty)
-     * @param customer   the customer placing the order (must not be null)
-     * @param discountPercent   discount as a fraction (0.0 - 1.0), e.g. 0.15 for 15% discount
-     * @throws IllegalArgumentException     if orderItems is null/empty, customer is null or discount is out of range
+     * @param orderItems      list of items in the order (must not be null or empty)
+     * @param customer        the customer placing the order (must not be null)
+     * @param discountPercent discount as a fraction (0.0 - 1.0), e.g. 0.15 for 15% discount
+     * @throws IllegalArgumentException if orderItems is null/empty, customer is null or discount is out of range
      */
     public Order(List<CartItem> orderItems, Customer customer, double discountPercent) {
         if (orderItems == null || orderItems.isEmpty()) {
