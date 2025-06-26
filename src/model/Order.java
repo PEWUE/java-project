@@ -11,6 +11,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Represents a single order in the shop system.
+ * Stores information about purchased items, customer, discount, order status and final price.
+ * Immutable except for the order status.
+ */
 public class Order implements Serializable {
     private final UUID id;
     private final ZonedDateTime orderDate;
@@ -20,6 +25,14 @@ public class Order implements Serializable {
     private final double discountPercent;
     private OrderStatus status;
 
+    /**
+     * Creates a new order.
+     *
+     * @param orderItems     list of items in the order (must not be null or empty)
+     * @param customer   the customer placing the order (must not be null)
+     * @param discountPercent   discount as a fraction (0.0 - 1.0), e.g. 0.15 for 15% discount
+     * @throws IllegalArgumentException     if orderItems is null/empty, customer is null or discount is out of range
+     */
     public Order(List<CartItem> orderItems, Customer customer, double discountPercent) {
         if (orderItems == null || orderItems.isEmpty()) {
             throw new IllegalArgumentException("Zamówienie musi zawierać minimum jeden produkt");
@@ -78,8 +91,15 @@ public class Order implements Serializable {
         this.status = status;
     }
 
-
-    //używam tylko id do porównania
+    /**
+     * Compares this order to another object for equality.
+     * <p>
+     * Two orders are considered equal if and only if their {@code id} fields are equal,
+     * regardless of other fields.
+     *
+     * @param o the object to compare with
+     * @return {@code true} if the given object is an Order with the same id, {@code false} otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -87,7 +107,9 @@ public class Order implements Serializable {
         return Objects.equals(id, order.id);
     }
 
-    //używam tylko id w hashCode
+    /**
+     * Returns hashcode for this order, based only on the unique {@code id} field.
+     */
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
