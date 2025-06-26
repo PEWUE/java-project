@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
+//TODO zrobić generyczną klasę do zapisu np. klientów, produktów itd?
 public class OrderPersistenceManager {
     public static void saveOrdersToFile(List<Order> orders, String filename) throws IOException {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename))) {
