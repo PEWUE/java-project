@@ -9,17 +9,21 @@ import model.ConfigurationOption;
 import model.Customer;
 import model.Order;
 import model.Product;
-import processor.OrderProcessor;
+import processor.OrderProcessingTask;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ShopCLI {
     public static final String ORDERS_FILENAME = "orders.dat";
 
     private final Scanner scanner;
+    private final ExecutorService executor = Executors.newFixedThreadPool(5);
+
     private final ProductManager productManager;
     private final Cart cart;
     private List<Order> orders;
@@ -38,7 +42,6 @@ public class ShopCLI {
 
     public void start() {
         boolean running = true;
-        System.out.println(orders);
         while (running) {
             showMainMenu();
             int choice = readInt("Wybierz opcję: ");
@@ -66,6 +69,7 @@ public class ShopCLI {
                     System.out.println("Nieprawidłowa opcja.");
             }
         }
+        executor.shutdown();
     }
 
     private void showMainMenu() {
@@ -200,20 +204,12 @@ public class ShopCLI {
         Order order = new Order(cart.getItems(), customer);
 
         try {
-            OrderProcessor.processOrder(order, productManager);
-            System.out.println("Zamówienie zostało złożone i opłacone");
-            orders.add(order);
-            OrderPersistenceManager.saveOrdersToFile(orders, ORDERS_FILENAME);
             String choice = readString("Czy chcesz wygenerować fakturę? (t/n)");
-            if (choice.equalsIgnoreCase("t") || choice.equalsIgnoreCase("tak")) {
-                System.out.println("FAKTURA");
-                System.out.println(OrderProcessor.generateInvoice(order));
-            }
+            boolean generateInvoice = choice.equalsIgnoreCase("t") || choice.equalsIgnoreCase("tak");
+            executor.submit(new OrderProcessingTask(order, productManager, orders, generateInvoice));
             cart.clear();
         } catch (IllegalStateException | IllegalArgumentException e) {
             System.err.println("Błąd podczas składania zamówienia: " + e.getMessage());
-        } catch (IOException e) {
-            System.err.println("Błąd podczas zapisu do pliku: " + e.getMessage());
         }
     }
 
