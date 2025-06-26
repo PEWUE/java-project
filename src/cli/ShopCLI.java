@@ -12,6 +12,7 @@ import model.Product;
 import processor.OrderProcessingTask;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -20,6 +21,7 @@ import java.util.concurrent.Executors;
 
 public class ShopCLI {
     public static final String ORDERS_FILENAME = "orders.dat";
+    public static final String PROMO_CODE = "PROMO10";
 
     private final Scanner scanner;
     private final ExecutorService executor = Executors.newFixedThreadPool(5);
@@ -200,8 +202,16 @@ public class ShopCLI {
         String postalCode = readString("Kod pocztowy: ");
         String country = readString("Kraj: ");
 
+        double discount = 0;
+        String discountInput = readString("Podaj kod rabatowy lub wpisz 'BRAK': ");
+
+        if (discountInput.equalsIgnoreCase(PROMO_CODE)) {
+            discount = 0.1;
+            System.out.println("Zastosowano rabat 10%");
+        }
+
         Customer customer = new Customer(firstName, lastName, email, phoneNumber, street, city, postalCode, country);
-        Order order = new Order(cart.getItems(), customer);
+        Order order = new Order(cart.getItems(), customer, discount);
 
         try {
             String choice = readString("Czy chcesz wygenerować fakturę? (t/n)");

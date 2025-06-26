@@ -8,6 +8,8 @@ import model.Customer;
 import model.Order;
 import model.Product;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
@@ -78,6 +80,15 @@ public class OrderProcessor {
                     item.getQuantity(),
                     item.getSingleItemPrice(),
                     item.getTotalPrice()));
+        }
+        BigDecimal basePrice = order.getOrderItems().stream()
+                .map(CartItem::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (order.getDiscountPercent() > 0) {
+            String formattedDiscount = String.format("%.2f", order.getDiscountPercent() * 100);
+            BigDecimal discountAmount = basePrice.subtract(order.getFinalPrice());
+            sb.append("Rabat: ").append(formattedDiscount).append("% (")
+                    .append(discountAmount.setScale(2, RoundingMode.HALF_UP)).append("zł)");
         }
         sb.append("\nSuma do zapłaty: ").append(order.getFinalPrice()).append(" PLN\n");
         return sb.toString();

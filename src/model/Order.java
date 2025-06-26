@@ -4,6 +4,7 @@ import enums.OrderStatus;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -16,14 +17,18 @@ public class Order implements Serializable {
     private final List<CartItem> orderItems;
     private final BigDecimal finalPrice;
     private final Customer customer;
+    private final double discountPercent;
     private OrderStatus status;
 
-    public Order(List<CartItem> orderItems, Customer customer) {
+    public Order(List<CartItem> orderItems, Customer customer, double discountPercent) {
         if (orderItems == null || orderItems.isEmpty()) {
             throw new IllegalArgumentException("Zamówienie musi zawierać minimum jeden produkt");
         }
         if (customer == null) {
             throw new IllegalArgumentException("Klient nie może być nullem");
+        }
+        if (discountPercent < 0.0 || discountPercent > 1.0) {
+            throw new IllegalArgumentException("Rabat musi być z przedziału 0–1");
         }
         this.id = UUID.randomUUID();
         this.orderDate = ZonedDateTime.now(ZoneId.of("UTC"));
@@ -31,7 +36,10 @@ public class Order implements Serializable {
         this.customer = customer;
         this.finalPrice = orderItems.stream()
                 .map(CartItem::getTotalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .multiply(BigDecimal.valueOf(1 - discountPercent))
+                .setScale(2, RoundingMode.HALF_UP);
+        this.discountPercent = discountPercent;
         this.status = OrderStatus.NEW;
     }
 
@@ -57,6 +65,10 @@ public class Order implements Serializable {
 
     public OrderStatus getStatus() {
         return status;
+    }
+
+    public double getDiscountPercent() {
+        return discountPercent;
     }
 
     public void setStatus(OrderStatus status) {
@@ -88,6 +100,7 @@ public class Order implements Serializable {
                 ", orderDate=" + orderDate.toLocalDateTime() +
                 ", orderItemsCount=" + orderItems.size() +
                 ", status=" + status +
+                ", discount=" + String.format("%.2f", discountPercent * 100) + "%" +
                 ", finalPrice=" + finalPrice +
                 ", customer=" + customer +
                 '}';
