@@ -1,0 +1,320 @@
+package cli;
+
+import exceptions.ProductNotFoundException;
+import manager.OrderPersistenceManager;
+import manager.ProductManager;
+import model.Cart;
+import model.CartItem;
+import model.ConfigurationOption;
+import model.Customer;
+import model.Order;
+import model.Product;
+import processor.OrderProcessingTask;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * Command-line interface for the shop application.
+ * <p>
+ * Handles user interaction, product browsing, cart management, and order processing.
+ * Manages the main menu loop and coordinates actions between the user and the business logic.
+ */
+public class ShopCLI {
+    public static final String ORDERS_FILENAME = "orders.dat";
+    public static final String PROMO_CODE = "PROMO10";
+
+    private final Scanner scanner;
+    private final ExecutorService executor = Executors.newFixedThreadPool(5);
+
+    private final ProductManager productManager;
+    private final Cart cart;
+    private List<Order> orders;
+
+    /**
+     * Initializes the CLI with the provided product manager and cart.
+     * Loads existing orders from file or creates a new list if loading fails.
+     *
+     * @param productManager the product manager (inventory)
+     * @param cart           the shopping cart
+     */
+    public ShopCLI(ProductManager productManager, Cart cart) {
+        this.scanner = new Scanner(System.in);
+        this.productManager = productManager;
+        this.cart = cart;
+        try {
+            this.orders = OrderPersistenceManager.loadOrdersFromFile(ORDERS_FILENAME);
+        } catch (IOException | ClassNotFoundException e) {
+            this.orders = new ArrayList<>();
+            System.err.println("Wczytywanie zamówień z pliku zakończone niepowodzeniem. Stworzono nową listę. " + e.getMessage());
+        }
+    }
+
+    /**
+     * Starts the main menu loop and handles user choices.
+     * Allows the user to browse products, manage the cart, and place orders.
+     * Shuts down the executor service on exit.
+     */
+    public void start() {
+        boolean running = true;
+        while (running) {
+            showMainMenu();
+            int choice = readInt("Wybierz opcję: ");
+            switch (choice) {
+                case 1:
+                    displayProducts();
+                    break;
+                case 2:
+                    addProductToCart();
+                    break;
+                case 3:
+                    removeProductFromCart();
+                    break;
+                case 4:
+                    displayCart();
+                    break;
+                case 5:
+                    placeOrder();
+                    break;
+                case 0:
+                    System.out.println("Do zobaczenia!");
+                    running = false;
+                    break;
+                default:
+                    System.out.println("Nieprawidłowa opcja.");
+            }
+        }
+        executor.shutdown();
+    }
+
+    private void showMainMenu() {
+        System.out.println("\n------ MENU ------");
+        System.out.println("1. Wyświetl produkty");
+        System.out.println("2. Dodaj produkt do koszyka");
+        System.out.println("3. Usuń produkt z koszyka");
+        System.out.println("4. Wyświetl koszyk");
+        System.out.println("5. Złóż zamówienie");
+        System.out.println("0. Wyjdź");
+    }
+
+    /**
+     * Displays all products currently available in the shop.
+     */
+    private void displayProducts() {
+        List<Product> products = productManager.getAllProducts();
+        System.out.println("\nDostępne produkty:");
+        for (int i = 0; i < products.size(); i++) {
+            System.out.println((i + 1) + ". " + products.get(i).getName());
+        }
+    }
+
+    /**
+     * Adds a selected product with chosen configuration options and quantity to the cart.
+     * Handles user input and validates the selection.
+     * Displays error messages if the operation fails.
+     */
+    private void addProductToCart() {
+        List<Product> products = productManager.getAllProducts();
+        displayProducts();
+        int productIndex = readInt("Wybierz numer produktu (0 - anuluj): ");
+        if (productIndex == 0) {
+            System.out.println("Anulowano dodawanie produktu.");
+            return;
+        }
+        if (productIndex < 1 || productIndex > products.size()) {
+            System.out.println("Nieprawidłowy numer produktu.");
+            return;
+        }
+        Product selectedProduct = products.get(productIndex - 1);
+
+        List<ConfigurationOption> chosenOptions = chooseOptions(selectedProduct);
+
+        int quantity = readInt("Podaj ilość (0 - anuluj): ");
+        if (quantity == 0) {
+            System.out.println("Anulowano dodawanie produktu.");
+            return;
+        }
+        if (quantity < 0) {
+            System.out.println("Ilość nie może być ujemna.");
+            return;
+        }
+
+        try {
+            cart.addProduct(selectedProduct, chosenOptions, quantity);
+            System.out.println("Dodano do koszyka: " + selectedProduct.getName() + " w ilości: " + quantity);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Błąd podczas dodawania do koszyka: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Allows the user to select configuration options for a specific product.
+     *
+     * @param product the product for which to choose options
+     * @return a list of selected configuration options
+     */
+    private List<ConfigurationOption> chooseOptions(Product product) {
+        List<ConfigurationOption> available = product.getAvailableOptions();
+        List<ConfigurationOption> chosen = new ArrayList<>();
+        if (available.isEmpty()) {
+            System.out.println("Brak dodatkowych opcji dla tego produktu.");
+            return chosen;
+        }
+        boolean selecting = true;
+        while (selecting) {
+            System.out.println("Dostępne opcje dla produktu:");
+            for (int i = 0; i < available.size(); i++) {
+                // Pokaż tylko opcje, które nie zostały już wybrane
+                if (!chosen.contains(available.get(i))) {
+                    System.out.println((i + 1) + ". " + available.get(i).getName());
+                }
+            }
+            System.out.println("0. Przejdź dalej (bez kolejnych opcji)");
+            int optionIndex = readInt("Wybierz numer opcji (0 - zakończ wybór): ");
+            if (optionIndex == 0) {
+                selecting = false;
+            } else if (optionIndex > 0 && optionIndex <= available.size()) {
+                ConfigurationOption selected = available.get(optionIndex - 1);
+                if (!chosen.contains(selected)) {
+                    chosen.add(selected);
+                    System.out.println("Dodano opcję: " + selected.getName());
+                } else {
+                    System.out.println("Ta opcja została już wybrana.");
+                }
+            } else {
+                System.out.println("Nieprawidłowy numer opcji.");
+            }
+        }
+        return chosen;
+    }
+
+    /**
+     * Displays the contents of the cart, including product details, options, quantities, and total value.
+     */
+    private void displayCart() {
+        List<CartItem> items = cart.getItems();
+        if (items.isEmpty()) {
+            System.out.println("\nKoszyk jest pusty.");
+            return;
+        }
+        System.out.println("\n------ ZAWARTOŚĆ KOSZYKA ------");
+        for (int i = 0; i < items.size(); i++) {
+            CartItem item = items.get(i);
+            System.out.println((i + 1) + ". " + item.getProduct().getName()
+                    + " | Ilość: " + item.getQuantity()
+                    + " | Cena jednostkowa: " + item.getSingleItemPrice()
+                    + " | Wartość pozycji: " + item.getTotalPrice());
+            if (!item.getSelectedOptions().isEmpty()) {
+                System.out.print("   Opcje: ");
+                item.getSelectedOptions().forEach(option -> System.out.print(option.getName() + " - " + option.getPrice() + " | "));
+                System.out.println();
+            }
+        }
+        System.out.println("Suma koszyka: " + cart.getTotalValue());
+    }
+
+    /**
+     * Guides the user through the process of placing an order:
+     * collects customer data, applies discount codes, and submits the order for asynchronous processing.
+     * Clears the cart after successful submission.
+     * Displays error messages if the operation fails.
+     */
+    private void placeOrder() {
+        if (cart.getItems().isEmpty()) {
+            System.out.println("Koszyk jest pusty.");
+            return;
+        }
+        System.out.println("\n--- Składanie zamówienia ---");
+        System.out.println("Podaj dane osoby zamawiającej: ");
+
+        String firstName = readString("Imię: ");
+        String lastName = readString("Nazwisko: ");
+        String email = readString("Email: ");
+        String phoneNumber = readString("Nr telefonu: ");
+        String street = readString("Ulica: ");
+        String city = readString("Miasto: ");
+        String postalCode = readString("Kod pocztowy: ");
+        String country = readString("Kraj: ");
+
+        double discount = 0;
+        String discountInput = readString("Podaj kod rabatowy lub wpisz 'BRAK': ");
+
+        if (discountInput.equalsIgnoreCase(PROMO_CODE)) {
+            discount = 0.1;
+            System.out.println("Zastosowano rabat 10%");
+        }
+
+        Customer customer = new Customer(firstName, lastName, email, phoneNumber, street, city, postalCode, country);
+        Order order = new Order(cart.getItems(), customer, discount);
+
+        try {
+            String choice = readString("Czy chcesz wygenerować fakturę? (t/n)");
+            boolean generateInvoice = choice.equalsIgnoreCase("t") || choice.equalsIgnoreCase("tak");
+            executor.submit(new OrderProcessingTask(order, productManager, orders, generateInvoice));
+            cart.clear();
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            System.err.println("Błąd podczas składania zamówienia: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Removes a selected product (with specific configuration) from the cart.
+     * Handles user input and validates the selection.
+     * Displays error messages if the operation fails.
+     */
+    private void removeProductFromCart() {
+        List<CartItem> items = cart.getItems();
+        if (items.isEmpty()) {
+            System.out.println("Koszyk jest pusty.");
+            return;
+        }
+        System.out.println("\n------ USUWANIE Z KOSZYKA ------");
+        for (int i = 0; i < items.size(); i++) {
+            CartItem item = items.get(i);
+            System.out.println((i + 1) + ". " + item.getProduct().getName()
+                    + " | Ilość: " + item.getQuantity()
+                    + (item.getSelectedOptions().isEmpty() ? "" : " | Opcje: " + item.getSelectedOptions()));
+        }
+        int choice = readInt("Podaj numer produktu do usunięcia (0 - anuluj): ");
+        if (choice == 0) {
+            System.out.println("Anulowano usuwanie.");
+            return;
+        }
+        if (choice < 1 || choice > items.size()) {
+            System.out.println("Nieprawidłowy numer.");
+            return;
+        }
+        CartItem toRemove = items.get(choice - 1);
+        try {
+            boolean removed = cart.removeItem(toRemove);
+            if (removed) {
+                System.out.println("Usunięto produkt z koszyka.");
+            } else {
+                System.out.println("Nie udało się usunąć produktu.");
+            }
+        } catch (ProductNotFoundException e) {
+            System.err.println("Błąd podczas usuwania produktu: " + e.getMessage());
+        }
+    }
+
+    private int readInt(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine();
+            try {
+                return Integer.parseInt(input.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Podaj liczbę!");
+            }
+        }
+    }
+
+    private String readString(String prompt) {
+        System.out.print(prompt);
+        return scanner.nextLine().trim();
+    }
+}
