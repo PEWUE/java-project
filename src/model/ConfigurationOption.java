@@ -4,10 +4,20 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+/**
+ * Represents a configuration option for a product (e.g., size, color).
+ * Stores the option's name and additional price.
+ */
 public class ConfigurationOption implements Serializable {
     private final String name;
     private final BigDecimal price;
 
+    /**
+     * Constructs a configuration option.
+     *
+     * @param name  the name of the option (e.g., "Color: Red")
+     * @param price the additional price for this option (may be zero)
+     */
     public ConfigurationOption(String name, BigDecimal price) {
         if (price.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Cena opcji nie może być ujemna");
