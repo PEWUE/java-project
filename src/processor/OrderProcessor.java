@@ -12,10 +12,26 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Provides static methods for processing orders and generating invoices.
+ * <p>
+ * Handles order validation, stock management, and invoice formatting.
+ */
 public class OrderProcessor {
-    private static int invoiceCounter = 1;
+    private static final AtomicInteger invoiceCounter = new AtomicInteger(1);
 
+    /**
+     * Processes the given order: checks product availability, updates inventory,
+     * removes products with zero stock, and updates the order status.
+     *
+     * @param order          the order to process (must not be null, status must be NEW)
+     * @param productManager the product manager (inventory)
+     * @throws IllegalArgumentException if the order is null
+     * @throws IllegalStateException    if the order status is not NEW or if there is insufficient stock
+     * @throws ProductNotFoundException if a product in the order does not exist in the inventory
+     */
     public static void processOrder(Order order, ProductManager productManager) {
         if (order == null) {
             throw new IllegalArgumentException("Zamówienie nie może być nullem");
@@ -46,6 +62,18 @@ public class OrderProcessor {
         order.setStatus(OrderStatus.PAID);
     }
 
+    /**
+     * Generates a formatted invoice for the given order.
+     * <p>
+     * The invoice includes customer details, a list of ordered products,
+     * applied discounts, and the total amount due.
+     * Can only be generated for orders with status PAID, SHIPPED, or COMPLETED.
+     *
+     * @param order the order for which to generate the invoice (must not be null)
+     * @return the invoice as a formatted String
+     * @throws IllegalArgumentException if the order is null
+     * @throws IllegalStateException    if the order status does not allow invoice generation
+     */
     public static String generateInvoice(Order order) {
         if (order == null) {
             throw new IllegalArgumentException("Zamówienie nie może być nullem");
@@ -60,7 +88,7 @@ public class OrderProcessor {
                 throw new IllegalStateException("Fakturę można wygenerować tylko dla opłaconych zamówień. Obecny status: " + order.getStatus());
         }
 
-        int invoiceNumber = invoiceCounter++;
+        int invoiceNumber = invoiceCounter.getAndIncrement();
         Customer customer = order.getCustomer();
         StringBuilder sb = new StringBuilder();
         sb.append("Faktura nr: ").append(invoiceNumber).append("\n");
