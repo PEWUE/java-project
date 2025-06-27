@@ -52,7 +52,16 @@ public class CartItem implements Serializable {
         return quantity;
     }
 
+    /**
+     * Sets the quantity for this cart item.
+     *
+     * @param quantity the new quantity (must be greater than 0)
+     * @throws IllegalArgumentException if quantity is not positive
+     */
     public void setQuantity(int quantity) {
+        if(quantity<=0) {
+            throw new IllegalArgumentException("Ilość musi być większa od 0");
+        }
         this.quantity = quantity;
     }
 
