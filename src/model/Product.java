@@ -9,6 +9,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Represents a product available in the shop.
+ * <p>
+ * Stores information about the product's name, base price, available quantity,
+ * type, and possible configuration options (such as size, color, etc.).
+ */
 public class Product implements Serializable {
     private final UUID id;
     private String name;
@@ -21,6 +27,16 @@ public class Product implements Serializable {
         this(UUID.randomUUID(), name, price, quantity, type, availableOptions);
     }
 
+    /**
+     * Constructs a new product with a generated unique identifier.
+     *
+     * @param name             the product name
+     * @param price            the base price (must not be negative)
+     * @param quantity         the available quantity (must not be negative)
+     * @param type             the product type
+     * @param availableOptions the list of available configuration options (may be null or empty)
+     * @throws IllegalStateException if price or quantity is negative
+     */
     public Product(UUID id, String name, BigDecimal price, int quantity, ProductType type, List<ConfigurationOption> availableOptions) {
         if (price.compareTo(BigDecimal.ZERO) < 0 || quantity < 0) {
             throw new IllegalStateException("Cena i ilość nie mogą być ujemne");
@@ -77,7 +93,15 @@ public class Product implements Serializable {
         this.availableOptions = availableOptions != null ? availableOptions : new ArrayList<>();
     }
 
-    //używam tylko id do porównania
+    /**
+     * Compares this product to another object for equality.
+     * <p>
+     * Two products are considered equal if they have the same unique identifier ({@code id}),
+     * regardless of other fields.
+     *
+     * @param o the object to compare with
+     * @return {@code true} if the given object is a Product with the same id, {@code false} otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -85,7 +109,12 @@ public class Product implements Serializable {
         return Objects.equals(id, product.id);
     }
 
-    //używam tylko id w hashCode
+    /**
+     * Returns the hash code for this product, based solely on the unique {@code id} field.
+     * This ensures consistency with the {@code equals} method.
+     *
+     * @return hash code based on product id
+     */
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
