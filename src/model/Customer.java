@@ -3,6 +3,11 @@ package model;
 import java.io.Serializable;
 import java.util.UUID;
 
+/**
+ * Represents a customer in the shop system.
+ * <p>
+ * Stores personal and contact information required for order processing and delivery.
+ */
 public class Customer implements Serializable {
     private final UUID id;
     private String firstName;
@@ -14,6 +19,18 @@ public class Customer implements Serializable {
     private String postalCode;
     private String country;
 
+    /**
+     * Creates a new customer with the specified personal and contact details.
+     *
+     * @param firstName   the first name of the customer
+     * @param lastName    the last name of the customer
+     * @param email       the email address of the customer
+     * @param phoneNumber the phone number of the customer
+     * @param street      the street address of the customer
+     * @param city        the city of the customer
+     * @param postalCode  the postal code of the customer's address
+     * @param country     the country of the customer
+     */
     public Customer(String firstName, String lastName, String email, String phoneNumber, String street, String city, String postalCode, String country) {
         this.id = UUID.randomUUID();
         this.firstName = firstName;
