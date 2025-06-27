@@ -16,8 +16,6 @@ public class Product implements Serializable {
     private int quantity;
     private ProductType type;
     private List<ConfigurationOption> availableOptions;
-    //TODO selectedOptions prawdopodobnie do wyrzucenia?
-    private List<ConfigurationOption> selectedOptions;
 
     public Product(String name, BigDecimal price, int quantity, ProductType type, List<ConfigurationOption> availableOptions) {
         this(UUID.randomUUID(), name, price, quantity, type, availableOptions);
@@ -33,21 +31,6 @@ public class Product implements Serializable {
         this.quantity = quantity;
         this.type = type;
         this.availableOptions = availableOptions != null ? availableOptions : new ArrayList<>();
-        this.selectedOptions = new ArrayList<>();
-    }
-
-    public void addSelectedOption(ConfigurationOption option) {
-        if (!availableOptions.contains(option)) {
-            throw new IllegalArgumentException("Opcja niedostępna dla tego produktu");
-        }
-        selectedOptions.add(option);
-    }
-
-    public BigDecimal getFinalPrice() {
-        BigDecimal optionsPrice = selectedOptions.stream()
-                .map(ConfigurationOption::getPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return basePrice.add(optionsPrice);
     }
 
     public UUID getId() {
@@ -94,14 +77,6 @@ public class Product implements Serializable {
         this.availableOptions = availableOptions != null ? availableOptions : new ArrayList<>();
     }
 
-    public List<ConfigurationOption> getSelectedOptions() {
-        return List.copyOf(selectedOptions);
-    }
-
-    public void setSelectedOptions(List<ConfigurationOption> selectedOptions) {
-        this.selectedOptions = selectedOptions;
-    }
-
     //używam tylko id do porównania
     @Override
     public boolean equals(Object o) {
@@ -120,8 +95,6 @@ public class Product implements Serializable {
     public String toString() {
         return name + " basePrice: " + basePrice
                 + " in magazine: " + quantity
-                + " availableOptions: " + availableOptions
-                + " selectedOptions: " + selectedOptions
-                + " finalPrice: " + getFinalPrice();
+                + " availableOptions: " + availableOptions;
     }
 }
