@@ -117,9 +117,10 @@ public class Order implements Serializable {
 
     @Override
     public String toString() {
+        ZoneId userZone = customer.getTimeZone();
         return "Order{" +
                 "id=" + id +
-                ", orderDate=" + orderDate.toLocalDateTime() +
+                ", orderDate=" + orderDate.withZoneSameInstant(userZone).toLocalDateTime() +
                 ", orderItemsCount=" + orderItems.size() +
                 ", status=" + status +
                 ", discount=" + String.format("%.2f", discountPercent * 100) + "%" +

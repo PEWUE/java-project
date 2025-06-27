@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.util.UUID;
 
 /**
@@ -18,6 +19,7 @@ public class Customer implements Serializable {
     private String city;
     private String postalCode;
     private String country;
+    private ZoneId timeZone;
 
     /**
      * Creates a new customer with the specified personal and contact details.
@@ -41,6 +43,7 @@ public class Customer implements Serializable {
         this.city = city;
         this.postalCode = postalCode;
         this.country = country;
+        this.timeZone = ZoneId.systemDefault();
     }
 
     public UUID getId() {
@@ -109,6 +112,14 @@ public class Customer implements Serializable {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public ZoneId getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(ZoneId timeZone) {
+        this.timeZone = timeZone;
     }
 
     @Override

@@ -10,6 +10,7 @@ import model.Product;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -90,9 +91,11 @@ public class OrderProcessor {
 
         int invoiceNumber = invoiceCounter.getAndIncrement();
         Customer customer = order.getCustomer();
+        ZoneId userZone = customer.getTimeZone();
+
         StringBuilder sb = new StringBuilder();
         sb.append("Faktura nr: ").append(invoiceNumber).append("\n");
-        sb.append("Data zakupu: ").append(order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).append("\n\n");
+        sb.append("Data zakupu: ").append(order.getOrderDate().withZoneSameInstant(userZone).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))).append(" ").append(userZone).append("\n");
         sb.append("Dane klienta:\n");
         sb.append(customer.getFirstName()).append(" ").append(customer.getLastName()).append("\n");
         sb.append(customer.getStreet()).append("\n");
