@@ -12,13 +12,18 @@ import model.Product;
 import processor.OrderProcessingTask;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Command-line interface for the shop application.
+ * <p>
+ * Handles user interaction, product browsing, cart management, and order processing.
+ * Manages the main menu loop and coordinates actions between the user and the business logic.
+ */
 public class ShopCLI {
     public static final String ORDERS_FILENAME = "orders.dat";
     public static final String PROMO_CODE = "PROMO10";
@@ -30,6 +35,13 @@ public class ShopCLI {
     private final Cart cart;
     private List<Order> orders;
 
+    /**
+     * Initializes the CLI with the provided product manager and cart.
+     * Loads existing orders from file or creates a new list if loading fails.
+     *
+     * @param productManager the product manager (inventory)
+     * @param cart           the shopping cart
+     */
     public ShopCLI(ProductManager productManager, Cart cart) {
         this.scanner = new Scanner(System.in);
         this.productManager = productManager;
@@ -42,6 +54,11 @@ public class ShopCLI {
         }
     }
 
+    /**
+     * Starts the main menu loop and handles user choices.
+     * Allows the user to browse products, manage the cart, and place orders.
+     * Shuts down the executor service on exit.
+     */
     public void start() {
         boolean running = true;
         while (running) {
@@ -84,6 +101,9 @@ public class ShopCLI {
         System.out.println("0. Wyjdź");
     }
 
+    /**
+     * Displays all products currently available in the shop.
+     */
     private void displayProducts() {
         List<Product> products = productManager.getAllProducts();
         System.out.println("\nDostępne produkty:");
@@ -92,6 +112,11 @@ public class ShopCLI {
         }
     }
 
+    /**
+     * Adds a selected product with chosen configuration options and quantity to the cart.
+     * Handles user input and validates the selection.
+     * Displays error messages if the operation fails.
+     */
     private void addProductToCart() {
         List<Product> products = productManager.getAllProducts();
         displayProducts();
@@ -106,10 +131,8 @@ public class ShopCLI {
         }
         Product selectedProduct = products.get(productIndex - 1);
 
-        // Wybór opcji
         List<ConfigurationOption> chosenOptions = chooseOptions(selectedProduct);
 
-        // Wybór ilości
         int quantity = readInt("Podaj ilość (0 - anuluj): ");
         if (quantity == 0) {
             System.out.println("Anulowano dodawanie produktu.");
@@ -128,6 +151,12 @@ public class ShopCLI {
         }
     }
 
+    /**
+     * Allows the user to select configuration options for a specific product.
+     *
+     * @param product the product for which to choose options
+     * @return a list of selected configuration options
+     */
     private List<ConfigurationOption> chooseOptions(Product product) {
         List<ConfigurationOption> available = product.getAvailableOptions();
         List<ConfigurationOption> chosen = new ArrayList<>();
@@ -163,6 +192,9 @@ public class ShopCLI {
         return chosen;
     }
 
+    /**
+     * Displays the contents of the cart, including product details, options, quantities, and total value.
+     */
     private void displayCart() {
         List<CartItem> items = cart.getItems();
         if (items.isEmpty()) {
@@ -185,6 +217,12 @@ public class ShopCLI {
         System.out.println("Suma koszyka: " + cart.getTotalValue());
     }
 
+    /**
+     * Guides the user through the process of placing an order:
+     * collects customer data, applies discount codes, and submits the order for asynchronous processing.
+     * Clears the cart after successful submission.
+     * Displays error messages if the operation fails.
+     */
     private void placeOrder() {
         if (cart.getItems().isEmpty()) {
             System.out.println("Koszyk jest pusty.");
@@ -223,6 +261,11 @@ public class ShopCLI {
         }
     }
 
+    /**
+     * Removes a selected product (with specific configuration) from the cart.
+     * Handles user input and validates the selection.
+     * Displays error messages if the operation fails.
+     */
     private void removeProductFromCart() {
         List<CartItem> items = cart.getItems();
         if (items.isEmpty()) {
