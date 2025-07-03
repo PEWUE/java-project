@@ -110,4 +110,23 @@ public class CartItem implements Serializable {
     public int hashCode() {
         return Objects.hash(product, selectedOptions);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(product.getName())
+                .append(" | Ilość: ").append(quantity)
+                .append(" | Cena jednostkowa: ").append(getSingleItemPrice())
+                .append(" | Wartość pozycji: ").append(getTotalPrice());
+        if (!selectedOptions.isEmpty()) {
+            sb.append("\n   Opcje: ");
+            selectedOptions.forEach(option ->
+                    sb.append(option.getName())
+                            .append(" - ")
+                            .append(option.getPrice())
+                            .append(" | ")
+            );
+        }
+        return sb.toString();
+    }
 }

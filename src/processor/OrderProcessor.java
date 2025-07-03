@@ -58,7 +58,6 @@ public class OrderProcessor {
                     productManager.removeProduct(prod.getId());
                 }
             });
-
         }
         order.setStatus(OrderStatus.PAID);
     }

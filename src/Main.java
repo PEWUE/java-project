@@ -1,4 +1,4 @@
-import cli.ShopCLI;
+import cli.ShopUserInterface;
 import generator.ProductGenerator;
 import manager.ProductManager;
 import model.Cart;
@@ -12,7 +12,7 @@ public class Main {
         List<Product> products = ProductGenerator.sampleProducts();
         products.forEach(productManager::addProduct);
         Cart cart = new Cart();
-        ShopCLI cli = new ShopCLI(productManager, cart);
-        cli.start();
+        ShopUserInterface shopUserInterface = new ShopUserInterface(productManager, cart);
+        shopUserInterface.start();
     }
 }

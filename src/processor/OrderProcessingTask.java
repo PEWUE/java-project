@@ -1,6 +1,6 @@
 package processor;
 
-import cli.ShopCLI;
+import cli.ShopUserInterface;
 import manager.OrderPersistenceManager;
 import manager.ProductManager;
 import model.Order;
@@ -49,7 +49,7 @@ public class OrderProcessingTask implements Runnable {
             }
             synchronized (orders) {
                 orders.add(order);
-                OrderPersistenceManager.saveOrdersToFile(orders, ShopCLI.ORDERS_FILENAME);
+                OrderPersistenceManager.saveOrdersToFile(orders, ShopUserInterface.ORDERS_FILENAME);
             }
             if (generateInvoice) {
                 System.out.println("FAKTURA");

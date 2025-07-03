@@ -14,6 +14,7 @@ import processor.OrderProcessingTask;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +25,7 @@ import java.util.concurrent.Executors;
  * Handles user interaction, product browsing, cart management, and order processing.
  * Manages the main menu loop and coordinates actions between the user and the business logic.
  */
-public class ShopCLI {
+public class ShopUserInterface {
     public static final String ORDERS_FILENAME = "orders.dat";
     public static final String PROMO_CODE = "PROMO10";
 
@@ -42,7 +43,7 @@ public class ShopCLI {
      * @param productManager the product manager (inventory)
      * @param cart           the shopping cart
      */
-    public ShopCLI(ProductManager productManager, Cart cart) {
+    public ShopUserInterface(ProductManager productManager, Cart cart) {
         this.scanner = new Scanner(System.in);
         this.productManager = productManager;
         this.cart = cart;
@@ -65,27 +66,16 @@ public class ShopCLI {
             showMainMenu();
             int choice = readInt("Wybierz opcję: ");
             switch (choice) {
-                case 1:
-                    displayProducts();
-                    break;
-                case 2:
-                    addProductToCart();
-                    break;
-                case 3:
-                    removeProductFromCart();
-                    break;
-                case 4:
-                    displayCart();
-                    break;
-                case 5:
-                    placeOrder();
-                    break;
-                case 0:
+                case 1 -> displayProducts();
+                case 2 -> addProductToCart();
+                case 3 -> removeProductFromCart();
+                case 4 -> displayCart();
+                case 5 -> placeOrder();
+                case 0 -> {
                     System.out.println("Do zobaczenia!");
                     running = false;
-                    break;
-                default:
-                    System.out.println("Nieprawidłowa opcja.");
+                }
+                default -> System.out.println("Nieprawidłowa opcja.");
             }
         }
         executor.shutdown();
@@ -120,29 +110,24 @@ public class ShopCLI {
     private void addProductToCart() {
         List<Product> products = productManager.getAllProducts();
         displayProducts();
-        int productIndex = readInt("Wybierz numer produktu (0 - anuluj): ");
-        if (productIndex == 0) {
-            System.out.println("Anulowano dodawanie produktu.");
-            return;
-        }
-        if (productIndex < 1 || productIndex > products.size()) {
-            System.out.println("Nieprawidłowy numer produktu.");
-            return;
-        }
-        Product selectedProduct = products.get(productIndex - 1);
+        Optional<Product> selectedProductOpt = getProductByUserSelection(products);
 
+        if (selectedProductOpt.isEmpty()) {
+            return;
+        }
+        Product selectedProduct = selectedProductOpt.get();
         List<ConfigurationOption> chosenOptions = chooseOptions(selectedProduct);
 
-        int quantity = readInt("Podaj ilość (0 - anuluj): ");
-        if (quantity == 0) {
-            System.out.println("Anulowano dodawanie produktu.");
-            return;
-        }
-        if (quantity < 0) {
-            System.out.println("Ilość nie może być ujemna.");
+        Optional<Integer> quantityOpt = getQuantityFromUser();
+
+        if (quantityOpt.isEmpty()) {
             return;
         }
 
+        tryAddToCart(selectedProduct, chosenOptions, quantityOpt.get());
+    }
+
+    private void tryAddToCart(Product selectedProduct, List<ConfigurationOption> chosenOptions, int quantity) {
         try {
             cart.addProduct(selectedProduct, chosenOptions, quantity);
             System.out.println("Dodano do koszyka: " + selectedProduct.getName() + " w ilości: " + quantity);
@@ -160,36 +145,51 @@ public class ShopCLI {
     private List<ConfigurationOption> chooseOptions(Product product) {
         List<ConfigurationOption> available = product.getAvailableOptions();
         List<ConfigurationOption> chosen = new ArrayList<>();
+
         if (available.isEmpty()) {
             System.out.println("Brak dodatkowych opcji dla tego produktu.");
             return chosen;
         }
-        boolean selecting = true;
-        while (selecting) {
-            System.out.println("Dostępne opcje dla produktu:");
-            for (int i = 0; i < available.size(); i++) {
-                // Pokaż tylko opcje, które nie zostały już wybrane
-                if (!chosen.contains(available.get(i))) {
-                    System.out.println((i + 1) + ". " + available.get(i).getName());
-                }
-            }
-            System.out.println("0. Przejdź dalej (bez kolejnych opcji)");
-            int optionIndex = readInt("Wybierz numer opcji (0 - zakończ wybór): ");
+
+        while (true) {
+            displayAvailableOptions(available, chosen);
+            int optionIndex = getOptionIndexFromUser(available);
             if (optionIndex == 0) {
-                selecting = false;
-            } else if (optionIndex > 0 && optionIndex <= available.size()) {
-                ConfigurationOption selected = available.get(optionIndex - 1);
-                if (!chosen.contains(selected)) {
-                    chosen.add(selected);
-                    System.out.println("Dodano opcję: " + selected.getName());
-                } else {
-                    System.out.println("Ta opcja została już wybrana.");
-                }
+                break;
+            }
+
+            ConfigurationOption selectedOption = available.get(optionIndex - 1);
+            if (!chosen.contains(selectedOption)) {
+                chosen.add(selectedOption);
+                System.out.println("Dodano opcję: " + selectedOption.getName());
             } else {
-                System.out.println("Nieprawidłowy numer opcji.");
+                System.out.println("Ta opcja została już wybrana.");
             }
         }
         return chosen;
+    }
+
+    private int getOptionIndexFromUser(List<ConfigurationOption> available) {
+        int optionIndex = readInt("Wybierz numer opcji (0 - zakończ wybór): ");
+        if (optionIndex == 0) {
+            return 0;
+        }
+        if (optionIndex < 1 || optionIndex > available.size()) {
+            System.out.println("Nieprawidłowy numer opcji.");
+            return -1;
+        }
+        return optionIndex;
+    }
+
+    private void displayAvailableOptions(List<ConfigurationOption> available, List<ConfigurationOption> chosen) {
+        System.out.println("Dostępne opcje dla produktu:");
+        for (int i = 0; i < available.size(); i++) {
+            // Pokaż tylko opcje, które nie zostały już wybrane
+            if (!chosen.contains(available.get(i))) {
+                System.out.println((i + 1) + ". " + available.get(i).getName());
+            }
+        }
+        System.out.println("0. Przejdź dalej (bez kolejnych opcji)");
     }
 
     /**
@@ -203,16 +203,7 @@ public class ShopCLI {
         }
         System.out.println("\n------ ZAWARTOŚĆ KOSZYKA ------");
         for (int i = 0; i < items.size(); i++) {
-            CartItem item = items.get(i);
-            System.out.println((i + 1) + ". " + item.getProduct().getName()
-                    + " | Ilość: " + item.getQuantity()
-                    + " | Cena jednostkowa: " + item.getSingleItemPrice()
-                    + " | Wartość pozycji: " + item.getTotalPrice());
-            if (!item.getSelectedOptions().isEmpty()) {
-                System.out.print("   Opcje: ");
-                item.getSelectedOptions().forEach(option -> System.out.print(option.getName() + " - " + option.getPrice() + " | "));
-                System.out.println();
-            }
+            System.out.println((i + 1) + ". " + items.get(i));
         }
         System.out.println("Suma koszyka: " + cart.getTotalValue());
     }
@@ -299,6 +290,32 @@ public class ShopCLI {
         } catch (ProductNotFoundException e) {
             System.err.println("Błąd podczas usuwania produktu: " + e.getMessage());
         }
+    }
+
+    private Optional<Product> getProductByUserSelection(List<Product> products) {
+        int productIndex = readInt("Wybierz numer produktu (0 - anuluj): ");
+        if (productIndex == 0) {
+            System.out.println("Anulowano dodawanie produktu.");
+            return Optional.empty();
+        }
+        if (productIndex < 1 || productIndex > products.size()) {
+            System.out.println("Nieprawidłowy numer produktu.");
+            return Optional.empty();
+        }
+        return Optional.of(products.get(productIndex - 1));
+    }
+
+    private Optional<Integer> getQuantityFromUser() {
+        int quantity = readInt("Podaj ilość (0 - anuluj): ");
+        if (quantity == 0) {
+            System.out.println("Anulowano dodawanie produktu.");
+            return Optional.empty();
+        }
+        if (quantity < 0) {
+            System.out.println("Ilość nie może być ujemna.");
+            return Optional.empty();
+        }
+        return Optional.of(quantity);
     }
 
     private int readInt(String prompt) {
