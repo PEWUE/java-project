@@ -1,6 +1,6 @@
 package processor;
 
-import cli.ShopUserInterface;
+import ui.ShopUserInterface;
 import manager.OrderPersistenceManager;
 import manager.ProductManager;
 import model.Order;

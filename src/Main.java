@@ -1,4 +1,4 @@
-import cli.ShopUserInterface;
+import ui.ShopUserInterface;
 import generator.ProductGenerator;
 import manager.ProductManager;
 import model.Cart;
