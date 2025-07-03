@@ -41,12 +41,11 @@ public class ShopUserInterface {
      * Loads existing orders from file or creates a new list if loading fails.
      *
      * @param productManager the product manager (inventory)
-     * @param cart           the shopping cart
      */
-    public ShopUserInterface(ProductManager productManager, Cart cart) {
+    public ShopUserInterface(ProductManager productManager) {
         this.scanner = new Scanner(System.in);
         this.productManager = productManager;
-        this.cart = cart;
+        this.cart = new Cart();
         try {
             this.orders = OrderPersistenceManager.loadOrdersFromFile(ORDERS_FILENAME);
         } catch (IOException | ClassNotFoundException e) {
