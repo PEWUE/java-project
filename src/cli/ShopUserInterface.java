@@ -202,10 +202,14 @@ public class ShopUserInterface {
             return;
         }
         System.out.println("\n------ ZAWARTOŚĆ KOSZYKA ------");
+        displayCartItemsWithNumbers(items);
+        System.out.println("Suma koszyka: " + cart.getTotalValue());
+    }
+
+    private void displayCartItemsWithNumbers(List<CartItem> items) {
         for (int i = 0; i < items.size(); i++) {
             System.out.println((i + 1) + ". " + items.get(i));
         }
-        System.out.println("Suma koszyka: " + cart.getTotalValue());
     }
 
     /**
@@ -220,26 +224,10 @@ public class ShopUserInterface {
             return;
         }
         System.out.println("\n--- Składanie zamówienia ---");
-        System.out.println("Podaj dane osoby zamawiającej: ");
+        Customer customer = getCustomerData();
 
-        String firstName = readString("Imię: ");
-        String lastName = readString("Nazwisko: ");
-        String email = readString("Email: ");
-        String phoneNumber = readString("Nr telefonu: ");
-        String street = readString("Ulica: ");
-        String city = readString("Miasto: ");
-        String postalCode = readString("Kod pocztowy: ");
-        String country = readString("Kraj: ");
+        double discount = getDiscountCodeFromUser();
 
-        double discount = 0;
-        String discountInput = readString("Podaj kod rabatowy lub wpisz 'BRAK': ");
-
-        if (discountInput.equalsIgnoreCase(PROMO_CODE)) {
-            discount = 0.1;
-            System.out.println("Zastosowano rabat 10%");
-        }
-
-        Customer customer = new Customer(firstName, lastName, email, phoneNumber, street, city, postalCode, country);
         Order order = new Order(cart.getItems(), customer, discount);
 
         try {
@@ -250,6 +238,29 @@ public class ShopUserInterface {
         } catch (IllegalStateException | IllegalArgumentException e) {
             System.err.println("Błąd podczas składania zamówienia: " + e.getMessage());
         }
+    }
+
+    private Customer getCustomerData() {
+        System.out.println("Podaj dane osoby zamawiającej: ");
+        String firstName = readString("Imię: ");
+        String lastName = readString("Nazwisko: ");
+        String email = readString("Email: ");
+        String phoneNumber = readString("Nr telefonu: ");
+        String street = readString("Ulica: ");
+        String city = readString("Miasto: ");
+        String postalCode = readString("Kod pocztowy: ");
+        String country = readString("Kraj: ");
+
+        return new Customer(firstName, lastName, email, phoneNumber, street, city, postalCode, country);
+    }
+
+    private double getDiscountCodeFromUser() {
+        String discountInput = readString("Podaj kod rabatowy lub wpisz 'BRAK': ");
+        if (discountInput.equalsIgnoreCase(PROMO_CODE)) {
+            System.out.println("Zastosowano rabat 10%");
+            return 0.1;
+        }
+        return 0.0;
     }
 
     /**
@@ -264,22 +275,13 @@ public class ShopUserInterface {
             return;
         }
         System.out.println("\n------ USUWANIE Z KOSZYKA ------");
-        for (int i = 0; i < items.size(); i++) {
-            CartItem item = items.get(i);
-            System.out.println((i + 1) + ". " + item.getProduct().getName()
-                    + " | Ilość: " + item.getQuantity()
-                    + (item.getSelectedOptions().isEmpty() ? "" : " | Opcje: " + item.getSelectedOptions()));
-        }
-        int choice = readInt("Podaj numer produktu do usunięcia (0 - anuluj): ");
-        if (choice == 0) {
-            System.out.println("Anulowano usuwanie.");
+        displayCartItemsWithNumbers(items);
+        Optional<CartItem> toRemoveOpt = selectCartItemToRemove(items);
+        if (toRemoveOpt.isEmpty()) {
             return;
         }
-        if (choice < 1 || choice > items.size()) {
-            System.out.println("Nieprawidłowy numer.");
-            return;
-        }
-        CartItem toRemove = items.get(choice - 1);
+
+        CartItem toRemove = toRemoveOpt.get();
         try {
             boolean removed = cart.removeItem(toRemove);
             if (removed) {
@@ -290,6 +292,19 @@ public class ShopUserInterface {
         } catch (ProductNotFoundException e) {
             System.err.println("Błąd podczas usuwania produktu: " + e.getMessage());
         }
+    }
+
+    private Optional<CartItem> selectCartItemToRemove(List<CartItem> items) {
+        int choice = readInt("Podaj numer produktu do usunięcia (0 - anuluj): ");
+        if (choice == 0) {
+            System.out.println("Anulowano usuwanie.");
+            return Optional.empty();
+        }
+        if (choice < 1 || choice > items.size()) {
+            System.out.println("Nieprawidłowy numer.");
+            return Optional.empty();
+        }
+        return Optional.of(items.get(choice - 1));
     }
 
     private Optional<Product> getProductByUserSelection(List<Product> products) {
