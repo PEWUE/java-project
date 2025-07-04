@@ -40,8 +40,6 @@ public class OrderProcessor {
         if (order.getStatus() != OrderStatus.NEW) {
             throw new IllegalStateException("Zamówienie nie może zostać przetworzone. Jego obecny status to: " + order.getStatus());
         }
-        //TODO
-        // czy jest sens tworzyć OrderItem, jeśli byłby praktycznie kopią CartItem?
         for (CartItem orderItem : order.getOrderItems()) {
             Product product = productManager.getProductById(orderItem.getProduct().getId())
                     .orElseThrow(() -> new ProductNotFoundException("Produkt nie istnieje w magazynie"));
